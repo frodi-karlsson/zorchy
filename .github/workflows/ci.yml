@@ -7,15 +7,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Install zig
         env:
           URL: https://ziglang.org/builds/zig-bootstrap-0.16.0-dev.747+493ad58ff.tar.xz
         run: |
+          echo "Installing zig from $URL"
           curl -L $URL -o zig.tar.xz
+          echo "Extracting zig"
           tar -xf zig.tar.xz
+          echo "Moving zig to /opt/zig"
           sudo mv zig-* /opt/zig
+          echo "Adding zig to PATH"
           echo "/opt/zig" >> $GITHUB_PATH
+          zig version
 
       - name: Run ci.json
         run: zig build run -Drelease-safe -- ci.json
