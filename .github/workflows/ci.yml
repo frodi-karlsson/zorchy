@@ -18,7 +18,7 @@ jobs:
           mv zig-* /opt/zig
           ls -la /opt/zig
           echo "Adding zig to PATH"
-          echo "/opt/zig" >> $GITHUB_PATH
+          echo "/opt/zig/zig" >> $GITHUB_PATH
 
       - name: Run ci.json
         run: |
