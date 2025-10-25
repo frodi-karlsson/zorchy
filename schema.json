@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/workflow-schema.json",
+  "title": "Workflow Root",
+  "type": "object",
+  "required": ["workflows", "entryPoint"],
+  "properties": {
+    "workflows": {
+      "type": "array",
+      "description": "A list of all workflow steps.",
+      "items": {
+        "$ref": "#/definitions/JSONWorkflowStep"
+      }
+    },
+    "entryPoint": {
+      "type": "string",
+      "description": "The name of the first step to execute."
+    }
+  },
+  "definitions": {
+    "TaskStatus": {
+      "type": "string",
+      "description": "The status for a Mock task.",
+      "enum": ["Pending", "InProgress", "Completed", "Failed"]
+    },
+    "TaskOptions": {
+      "type": "object",
+      "description": "Common options for tasks.",
+      "properties": {
+        "retryCount": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Number of times to retry the task on failure."
+        },
+        "retryDelaySeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Initial delay in seconds before retrying the task."
+        },
+        "retryMultiplier": {
+          "type": "number",
+          "minimum": 1.0,
+          "default": 1.0,
+          "description": "Multiplier for the retry delay for exponential backoff."
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Timeout in seconds for the task execution."
+        }
+      },
+      "additionalProperties": false
+    },
+    "JSONShellTask": {
+      "title": "Shell Task",
+      "type": "object",
+      "required": ["command", "args"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "The shell command to execute."
+        },
+        "args": {
+          "type": "array",
+          "description": "A list of string arguments for the command.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "JSONMockTask": {
+      "title": "Mock Task",
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AnyJSONTask": {
+      "title": "Any Task",
+      "type": "object",
+      "description": "A wrapper for a specific task type, corresponding to the Zig union.",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["Shell"],
+          "properties": {
+            "Shell": {
+              "$ref": "#/definitions/JSONShellTask"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["Mock"],
+          "properties": {
+            "Mock": {
+              "$ref": "#/definitions/JSONMockTask"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "JSONWorkflowStep": {
+      "title": "Workflow Step",
+      "type": "object",
+      "required": ["name", "task"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The unique name of the workflow step."
+        },
+        "task": {
+          "$ref": "#/definitions/AnyJSONTask",
+          "description": "The task definition to be executed in this step."
+        },
+        "onComplete": {
+          "type": ["string", "null"],
+          "description": "The name of the next step to execute on successful completion, or null/omitted."
+        },
+        "onError": {
+          "type": ["string", "null"],
+          "description": "The name of the next step to execute on failure, or null/omitted."
+        },
+        "options": {
+          "$ref": "#/definitions/TaskOptions",
+          "description": "Optional task execution options."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

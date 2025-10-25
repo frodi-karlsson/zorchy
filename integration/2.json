@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema.json",
+  "entryPoint": "triple failer",
+  "workflows": [
+    {
+      "name": "triple failer",
+      "options": {
+        "retryCount": 5,
+        "retryDelaySeconds": 1,
+        "retryMultiplier": 2.0,
+        "timeoutSeconds": 5
+      },
+      "task": {
+        "Shell": {
+          "command": "sh",
+          "args": ["./integration/2.sh"]
+        }
+      }
+    }
+  ]
+}
