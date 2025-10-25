@@ -15,6 +15,7 @@ jobs:
           curl -L $URL -o zig.tar.xz
           echo "Extracting zig"
           tar -xf zig.tar.xz
+          ls -la
           echo "Moving zig to /opt/zig"
           sudo mv zig /opt/zig
           echo "Adding zig to PATH"
