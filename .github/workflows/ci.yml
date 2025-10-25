@@ -17,6 +17,7 @@ jobs:
           tar -xf zig.tar.xz
           mv zig-* /opt/zig
           ls -la /opt/zig
+          ls -la /opt/zig/zig
           echo "Adding zig to PATH"
           echo "/opt/zig/zig" >> $GITHUB_PATH
 
