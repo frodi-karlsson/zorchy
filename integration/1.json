@@ -1,7 +1,17 @@
 {
   "$schema": "../schema.json",
-  "entryPoint": "make file",
+  "entryPoint": "make dir",
   "workflows": [
+    {
+      "name": "make dir",
+      "task": {
+        "Shell": {
+          "command": "mkdir",
+          "args": ["-p", "./integration/out/1"]
+        }
+      },
+      "onComplete": "make file"
+    },
     {
       "name": "make file",
       "task": {
