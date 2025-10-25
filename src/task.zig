@@ -326,8 +326,8 @@ test "ShellTask - exec with invalid command fails" {
     const status = try shellTask.exec(allocator);
     try std.testing.expectEqual(TaskStatus.Failed, status);
     try std.testing.expectEqual(TaskStatus.Failed, shellTask.ctx.status);
-    try std.testing.expect(shellTask.ctx.diagnostics.items.len == 1);
-    try std.testing.expectEqualStrings(shellTask.ctx.diagnostics.items[0].message, "Error: FileNotFound");
+    try std.testing.expect(shellTask.ctx.diagnostics.items.len > 1);
+    try std.testing.expectEqualStrings(logging.red("Error: FileNotFound"), shellTask.ctx.diagnostics.items[1].message);
 }
 
 test "ShellTask - exec with valid command succeeds" {

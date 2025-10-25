@@ -7,10 +7,7 @@
       "task": {
         "Shell": {
           "command": "sh",
-          "args": [
-            "-c",
-            "cd ./zorchy && ../zig/bin/zig build --cache-dir ../zig-cache"
-          ]
+          "args": ["-c", "zig build"]
         }
       },
       "onComplete": "run tests"
@@ -20,10 +17,7 @@
       "task": {
         "Shell": {
           "command": "sh",
-          "args": [
-            "-c",
-            "cd ./zorchy && ../zig/bin/zig build test --cache-dir ../zig-cache"
-          ]
+          "args": ["-c", "zig build test"]
         }
       },
       "onComplete": "run integration tests"
@@ -33,10 +27,7 @@
       "task": {
         "Shell": {
           "command": "sh",
-          "args": [
-            "-c",
-            "cd ./zorchy && ../zig/bin/zig build integration --cache-dir ../zig-cache"
-          ]
+          "args": ["-c", "zig build integration"]
         }
       }
     }
