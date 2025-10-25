@@ -19,9 +19,8 @@ jobs:
           ls -la /opt/zig
           echo "Adding zig to PATH"
           echo "/opt/zig" >> $GITHUB_PATH
-          zig version
 
       - name: Run ci.json
         run: |
-
+          echo $PATH
           zig build run -Drelease-safe -- ci.json
