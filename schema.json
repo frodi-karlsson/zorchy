@@ -126,9 +126,12 @@
           "$ref": "#/definitions/AnyJSONTask",
           "description": "The task definition to be executed in this step."
         },
-        "onComplete": {
-          "type": ["string", "null"],
-          "description": "The name of the next step to execute on successful completion, or null/omitted."
+        "dependsOn": {
+          "type": "array",
+          "description": "A list of step names that must complete before this step can execute.",
+          "items": {
+            "type": "string"
+          }
         },
         "onError": {
           "type": ["string", "null"],

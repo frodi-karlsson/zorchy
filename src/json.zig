@@ -24,14 +24,15 @@ pub const JSONWorkflowStep = struct {
     name: []const u8,
     task: AnyJSONTask,
     options: ?task.TaskOptions = null,
-    onComplete: ?[]const u8 = null,
     onError: ?[]const u8 = null,
+    dependsOn: ?[]const []const u8 = null,
 };
 
 pub const JSONRoot = struct {
     @"$schema": ?[]const u8 = null,
     workflows: []const JSONWorkflowStep,
     entryPoint: []const u8,
+    concurrency: ?usize = null,
 };
 
 pub const JSONShellTaskError = error{
@@ -58,7 +59,7 @@ fn unmarshalJSONStep(allocator: std.mem.Allocator, step: JSONWorkflowStep) std.m
         },
     };
 
-    return try workflow.WorkflowStep.create(allocator, step.name, unmarshalledTask, step.onComplete, step.onError);
+    return try workflow.WorkflowStep.create(allocator, step.name, unmarshalledTask, step.onError, step.dependsOn);
 }
 
 /// Unmarshals a JSON workflow into a workflow.Workflow
@@ -77,7 +78,7 @@ pub fn unmarshalJSONWorkflow(allocator: std.mem.Allocator, json: []const u8) (An
     const stepsSlice = try steps.toOwnedSlice(allocator);
     defer allocator.free(stepsSlice);
 
-    return try workflow.Workflow.create(stepsSlice, root.value.entryPoint, allocator);
+    return try workflow.Workflow.create(stepsSlice, root.value.entryPoint, allocator, root.value.concurrency);
 }
 
 test "unmarshal JSON workflow" {
@@ -93,8 +94,7 @@ test "unmarshal JSON workflow" {
         \\              "command": "echo",
         \\              "args": ["Hello, World!"]
         \\            }
-        \\        },
-        \\        "onComplete": "step2"
+        \\        }
         \\    },
         \\    {
         \\        "name": "step2",

@@ -1,7 +1,8 @@
 # zorchy
 
 zorchy is a small workflow runner written in Zig.
-It executes task graphs defined in JSON, chaining steps through `onComplete` and `onError` transitions.
+It executes task graphs defined in JSON, allowing error handling through `onError` transitions.
+There is also concurrency and dependency support through the `concurrency` and `dependsOn` fields.
 
 It is a learning project for me in zig and nothing to take too seriously.
 
@@ -25,17 +26,14 @@ More examples exist / coming soon in the `./integration` folder.
     {
       "name": "make file",
       "task": { "Shell": { "command": "touch", "args": ["./integration/out/1/output.txt"] } },
-      "onComplete": "populate file"
     },
     {
       "name": "populate file",
       "task": { "Shell": { "command": "sh", "args": ["-c", "echo \"Hello, World!\" > ./integration/out/1/output.txt"] } },
-      "onComplete": "verify file"
     },
     {
       "name": "verify file",
       "task": { "Shell": { "command": "sh", "args": ["-c", "grep -q 'Hello, World!' ./integration/out/1/output.txt"] } },
-      "onComplete": "read file",
       "onError": "invalid file content"
     },
     {
@@ -45,7 +43,6 @@ More examples exist / coming soon in the `./integration` folder.
     {
       "name": "read file",
       "task": { "Shell": { "command": "head", "args": ["-n1", "./integration/out/1/output.txt"] } },
-      "onComplete": "failing test"
     },
     {
       "name": "failing test",
