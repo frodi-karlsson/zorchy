@@ -181,8 +181,7 @@ pub const Workflow = struct {
     }
 
     fn threadWorker(self: *Workflow, allocator: std.mem.Allocator, wg: *std.Thread.WaitGroup, stepName: []const u8) void {
-        // TODO figure out how to propagate the error. Is diagnostics enough?
-        self.executeStep(allocator, stepName) catch {};
+        self.executeStep(allocator, stepName) catch {}; // handled by thread creator using task status
         wg.finish();
     }
 
