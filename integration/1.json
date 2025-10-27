@@ -9,8 +9,7 @@
           "command": "mkdir",
           "args": ["-p", "./integration/out/1"]
         }
-      },
-      "onComplete": "make file"
+      }
     },
     {
       "name": "make file",
@@ -20,7 +19,7 @@
           "args": ["./integration/out/1/output.txt"]
         }
       },
-      "onComplete": "populate file"
+      "dependsOn": ["make dir"]
     },
     {
       "name": "populate file",
@@ -33,7 +32,7 @@
           ]
         }
       },
-      "onComplete": "verify file"
+      "dependsOn": ["make file"]
     },
     {
       "name": "verify file",
@@ -46,8 +45,8 @@
           ]
         }
       },
-      "onComplete": "read file",
-      "onError": "invalid file content"
+      "onError": "invalid file content",
+      "dependsOn": ["populate file"]
     },
     {
       "name": "invalid file content",
@@ -56,20 +55,21 @@
           "command": "sh",
           "args": [
             "-c",
-            "echo 'File content is invalid. Expected \"Hello, World!\"' && exit 1"
+            "echo 'File content is invalid. Expected \"Hello, World!\", but got:'; cat ./integration/out/1/output.txt >&2; exit 1"
           ]
         }
-      }
+      },
+      "dependsOn": ["err"]
     },
     {
-      "name": "read file",
+      "name": "echo file",
       "task": {
         "Shell": {
           "command": "head",
           "args": ["-n1", "./integration/out/1/output.txt"]
         }
       },
-      "onComplete": "failing test"
+      "dependsOn": ["populate file"]
     },
     {
       "name": "failing test",
@@ -79,7 +79,8 @@
           "args": ["-c", "exit 1"]
         }
       },
-      "onError": "finish"
+      "onError": "finish",
+      "dependsOn": ["echo file"]
     },
     {
       "name": "finish",

@@ -9,8 +9,7 @@
           "command": "sh",
           "args": ["-c", "zig build"]
         }
-      },
-      "onComplete": "run tests"
+      }
     },
     {
       "name": "run tests",
@@ -19,8 +18,7 @@
           "command": "sh",
           "args": ["-c", "zig build test"]
         }
-      },
-      "onComplete": "run integration tests"
+      }
     },
     {
       "name": "run integration tests",

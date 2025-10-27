@@ -1,7 +1,7 @@
 # Fails on first 3 attempts, succeeds on 4th
 # Achieved by persisting a tmp file in ./tmp/
 # Called by 2.json workflow
-
+echo "Script 2.sh started"
 TMP_DIR="./tmp"
 TMP_FILE="$TMP_DIR/attempt_count.txt"
 mkdir -p $TMP_DIR
