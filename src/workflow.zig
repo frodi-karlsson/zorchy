@@ -11,6 +11,8 @@ pub const WorkflowError = error{
     MaxIterationsExceeded,
     // A problem occurred while spawning or managing threads.
     ThreadError,
+    // A cycle was detected in the workflow transitions.
+    CycleDetected,
 };
 
 /// Defines a step in the workflow, including its name, associated task,
@@ -102,8 +104,7 @@ pub const Workflow = struct {
             .Completed => {},
             .Failed => {
                 if (step.onError) |msg| {
-                    const dupe = try allocator.dupe(u8, msg);
-                    try self.queue.append(allocator, dupe);
+                    try self.queue.append(allocator, msg);
                 } else {
                     std.log.err(logging.red("Task {s} failed with status {s} without onError transition."), .{ step.name, result.toString() });
                     switch (step.task.impl) {
@@ -243,8 +244,39 @@ pub const Workflow = struct {
         }
     }
 
+    fn detectCycles(allocator: std.mem.Allocator, steps: []WorkflowStep) WorkflowError!void {
+        // only onError transitions can create cycles
+        var visited = std.StringHashMap(bool).init(allocator);
+        defer visited.deinit();
+
+        const maxIterations: usize = 1000;
+        var iterations: usize = 0;
+        while (iterations < maxIterations) : (iterations += 1) {
+            var progress = false;
+            for (steps) |step| {
+                if (visited.get(step.name) orelse false) continue;
+                if (step.onError) |nextStepName| {
+                    if (std.mem.eql(u8, nextStepName, step.name)) {
+                        return WorkflowError.CycleDetected;
+                    }
+                    if (visited.get(nextStepName) orelse false) {
+                        visited.put(step.name, true) catch {};
+                        progress = true;
+                    }
+                } else {
+                    visited.put(step.name, true) catch {};
+                    progress = true;
+                }
+            }
+            if (!progress) break;
+        }
+        if (iterations >= maxIterations) {
+            return WorkflowError.MaxIterationsExceeded;
+        }
+    }
+
     /// Initializes a new Workflow with the given steps and entry point.
-    pub fn create(steps: []WorkflowStep, entryPoint: []const u8, allocator: std.mem.Allocator, concurrency: ?usize) std.mem.Allocator.Error!Workflow {
+    pub fn create(steps: []WorkflowStep, entryPoint: []const u8, allocator: std.mem.Allocator, concurrency: ?usize) (std.mem.Allocator.Error || WorkflowError)!Workflow {
         const queue = try std.ArrayList([]const u8).initCapacity(allocator, steps.len);
         const stepCopy = try allocator.dupe(WorkflowStep, steps);
         const stepPtrArray = try allocator.alloc(*WorkflowStep, steps.len);
@@ -253,13 +285,18 @@ pub const Workflow = struct {
             stepPtrArray[index] = &stepCopy[index];
         }
 
-        return Workflow{
+        var workflow = Workflow{
             .steps = stepPtrArray,
             .backing = stepCopy,
             .queue = queue,
             .entryPoint = entryPointDupe,
             .concurrency = concurrency orelse 4,
         };
+        errdefer workflow.deinit(allocator);
+
+        try detectCycles(allocator, steps);
+
+        return workflow;
     }
 
     /// Deinitializes the workflow, freeing associated resources.
@@ -267,12 +304,9 @@ pub const Workflow = struct {
         for (self.steps) |step| {
             step.deinit(allocator);
         }
-        allocator.free(self.entryPoint);
         allocator.free(self.steps);
+        allocator.free(self.entryPoint);
         allocator.free(self.backing);
-        for (self.queue.items) |item| {
-            allocator.free(item);
-        }
         self.queue.deinit(allocator);
     }
 };
@@ -311,6 +345,16 @@ test "Workflow full execution" {
 
     try workflow.execute(allocator);
     try std.testing.expectEqual(0, workflow.queue.items.len);
+}
+
+test "should break infinite loop" {
+    const allocator = std.testing.allocator;
+    const task1 = try task.Task.create(allocator, "MockTask1", .{}, task.AnyTask{ .Mock = task.MockTask.create(.Failed) });
+    const step1 = try WorkflowStep.create(allocator, "step1", task1, "step1", null);
+
+    var steps = [_]WorkflowStep{step1};
+    const err = Workflow.create(&steps, "step1", allocator, null);
+    try std.testing.expectError(WorkflowError.CycleDetected, err);
 }
 
 test "runs working shell workflow" {

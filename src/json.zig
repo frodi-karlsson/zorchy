@@ -63,7 +63,7 @@ fn unmarshalJSONStep(allocator: std.mem.Allocator, step: JSONWorkflowStep) std.m
 }
 
 /// Unmarshals a JSON workflow into a workflow.Workflow
-pub fn unmarshalJSONWorkflow(allocator: std.mem.Allocator, json: []const u8) (AnyTaskError || std.json.ParseError(std.json.Scanner))!workflow.Workflow {
+pub fn unmarshalJSONWorkflow(allocator: std.mem.Allocator, json: []const u8) (AnyTaskError || std.json.ParseError(std.json.Scanner) || workflow.WorkflowError)!workflow.Workflow {
     const root: std.json.Parsed(JSONRoot) = try std.json.parseFromSlice(JSONRoot, allocator, json, .{});
     defer root.deinit();
 
