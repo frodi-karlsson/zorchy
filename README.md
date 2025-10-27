@@ -20,39 +20,41 @@ More examples exist / coming soon in the `./integration` folder.
 
 ```json
 {
-  "$schema": "https://www.github.com/frodi-karlsson/zorchy/schema.json",
-  "entryPoint": "make file",
+  "$schema": "../schema.json",
+  "entryPoint": "make dir",
   "workflows": [
     {
+      "name": "make dir",
+      "task": {
+        "Shell": {
+          "command": "mkdir",
+          "args": ["-p", "./integration/out/1"]
+        }
+      }
+    },
+    {
       "name": "make file",
-      "task": { "Shell": { "command": "touch", "args": ["./integration/out/1/output.txt"] } },
+      "task": {
+        "Shell": {
+          "command": "touch",
+          "args": ["./integration/out/1/output.txt"]
+        }
+      },
+      "dependsOn": ["make dir"]
     },
     {
       "name": "populate file",
-      "task": { "Shell": { "command": "sh", "args": ["-c", "echo \"Hello, World!\" > ./integration/out/1/output.txt"] } },
+      "task": {
+        "Shell": {
+          "command": "sh",
+          "args": [
+            "-c",
+            "echo \"Hello, World!\" > ./integration/out/1/output.txt"
+          ]
+        }
+      },
+      "dependsOn": ["make file"]
     },
-    {
-      "name": "verify file",
-      "task": { "Shell": { "command": "sh", "args": ["-c", "grep -q 'Hello, World!' ./integration/out/1/output.txt"] } },
-      "onError": "invalid file content"
-    },
-    {
-      "name": "invalid file content",
-      "task": { "Shell": { "command": "sh", "args": ["-c", "echo 'File content is invalid. Expected \"Hello, World!\"' && exit 1"] } }
-    },
-    {
-      "name": "read file",
-      "task": { "Shell": { "command": "head", "args": ["-n1", "./integration/out/1/output.txt"] } },
-    },
-    {
-      "name": "failing test",
-      "task": { "Shell": { "command": "sh", "args": ["-c", "exit 1"] } },
-      "onError": "finish"
-    },
-    {
-      "name": "finish",
-      "task": { "Mock": { "status": "Completed" } }
-    }
   ]
 }
 ```

@@ -69,7 +69,7 @@
           "args": ["-n1", "./integration/out/1/output.txt"]
         }
       },
-      "dependsOn": ["verify file"]
+      "dependsOn": ["populate file"]
     },
     {
       "name": "failing test",
